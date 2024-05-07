@@ -25,6 +25,27 @@ class _TaskListScreenState extends State<TaskListScreen> {
     ),
   ];
 
+  List<Task> filteredTasks = []; // Lista de tareas filtradas
+  TextEditingController searchController = TextEditingController(); // Controlador para el campo de búsqueda
+
+  @override
+  void initState() {
+    filteredTasks = tasks; // Al principio, las tareas filtradas serán las mismas que las tareas originales
+    super.initState();
+  }
+
+  void _filterTasks(String query) {
+    List<Task> searchResult = tasks.where((task) {
+      // Filtrar tareas basadas en el título o la descripción
+      return task.title.toLowerCase().contains(query.toLowerCase()) ||
+          task.description.toLowerCase().contains(query.toLowerCase());
+    }).toList();
+
+    setState(() {
+      filteredTasks = searchResult; // Actualizar la lista de tareas filtradas
+    });
+  }
+
   void _showAddTaskDialog() {
     String newTitle = '';
     String newDescription = '';
@@ -57,6 +78,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                       description: newDescription,
                       isCompleted: false,
                     ));
+                    _filterTasks(searchController.text); // Filtrar tareas después de agregar una nueva
                   });
                   Navigator.of(context).pop();
                 }
@@ -72,6 +94,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
   void _removeTask(int index) {
     setState(() {
       tasks.removeAt(index);
+      _filterTasks(searchController.text); // Filtrar tareas después de eliminar una
     });
   }
 
@@ -80,48 +103,71 @@ class _TaskListScreenState extends State<TaskListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Tareas Pendientes'),
-        flexibleSpace: FlexibleSpaceBar(
-          centerTitle: false,
-          titlePadding: EdgeInsets.only(left: 200),
-          title: TextButton(
-            onPressed: _showAddTaskDialog,
-            style: ButtonStyle(
-              backgroundColor:
-                  MaterialStateProperty.all(Color.fromARGB(255, 243, 240, 232)),
-            ),
-            child: Text(
-              'Agregar tarea',
-              style: TextStyle(color: Colors.black87),
-            ),
-          ),
-        ),
-      ),
-      body: Container(
-        color: Colors.brown[100],
-        child: ListView.builder(
-          itemCount: tasks.length,
-          itemBuilder: (context, index) {
-            return Dismissible(
-              key: Key(tasks[index].title),
-              onDismissed: (direction) {
-                _removeTask(index);
-              },
-              background: Container(color: Colors.red),
-              child: ListTile(
-                title: Text(tasks[index].title),
-                subtitle: Text(tasks[index].description),
-                trailing: Checkbox(
-                  value: tasks[index].isCompleted,
-                  onChanged: (value) {
-                    setState(() {
-                      tasks[index].isCompleted = value!;
-                    });
-                  },
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: TextButton(
+              onPressed: _showAddTaskDialog,
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(
+                  Color.fromARGB(255, 243, 240, 232),
                 ),
               ),
-            );
-          },
-        ),
+              child: Text(
+                'Agregar tarea',
+                style: TextStyle(color: Colors.black87),
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: 'Buscar tareas...',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: _filterTasks,
+            ),
+          ),
+          Expanded(
+            child: Container(
+              color: Colors.brown[100],
+              child: ListView.builder(
+                itemCount: filteredTasks.length,
+                itemBuilder: (context, index) {
+                  return Dismissible(
+                    key: Key(filteredTasks[index].title),
+                    onDismissed: (direction) {
+                      _removeTask(index);
+                    },
+                    background: Container(color: Colors.red),
+                    child: Card(
+                      elevation: 4, // Añadir elevación para sombra
+                      margin: EdgeInsets.all(8), // Espacio alrededor del Card
+                      child: ListTile(
+                        title: Text(filteredTasks[index].title),
+                        subtitle: Text(filteredTasks[index].description),
+                        trailing: Checkbox(
+                          value: filteredTasks[index].isCompleted,
+                          onChanged: (value) {
+                            setState(() {
+                              filteredTasks[index].isCompleted = value!;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
