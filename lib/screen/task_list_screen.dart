@@ -164,22 +164,16 @@ class _TaskListScreenState extends State<TaskListScreen> {
                       _removeTask(index);
                     },
                     background: Container(color: Colors.red),
-                    child: InkWell(
-                      onTap: () {
-                        // Mostrar dialogo de edición
-                        _showAddTaskDialog(task: filteredTasks[index]);
-                      },
-                      child: ListTile(
-                        title: Text(filteredTasks[index].title),
-                        subtitle: Text(filteredTasks[index].description),
-                        trailing: Checkbox(
-                          value: filteredTasks[index].isCompleted,
-                          onChanged: (value) {
-                            setState(() {
-                              filteredTasks[index].isCompleted = value!;
-                            });
-                          },
-                        ),
+                    child: ListTile(
+                      title: Text(filteredTasks[index].title),
+                      subtitle: Text(filteredTasks[index].description),
+                      trailing: Checkbox(
+                        value: filteredTasks[index].isCompleted,
+                        onChanged: (value) {
+                          setState(() {
+                            filteredTasks[index].isCompleted = value!;
+                          });
+                        },
                       ),
                     ),
                   );
