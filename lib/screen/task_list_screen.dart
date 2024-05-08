@@ -105,11 +105,23 @@ class _TaskListScreenState extends State<TaskListScreen> {
   }
 
   void _removeTask(int index) {
-    setState(() {
-      tasks.removeAt(index);
-      _filterTasks(
-          searchController.text); // Filtrar tareas después de eliminar una
-    });
+    final removedTask = tasks.removeAt(index);
+    _filterTasks(
+        searchController.text); // Filtrar tareas después de eliminar una
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Tarea "${removedTask.title}" eliminada'),
+        action: SnackBarAction(
+          label: 'Deshacer',
+          onPressed: () {
+            setState(() {
+              tasks.insert(index, removedTask);
+              _filterTasks(searchController.text);
+            });
+          },
+        ),
+      ),
+    );
   }
 
   @override
@@ -152,33 +164,22 @@ class _TaskListScreenState extends State<TaskListScreen> {
                       _removeTask(index);
                     },
                     background: Container(color: Colors.red),
-                    child: ListTile(
-                      title: Text(filteredTasks[index].title),
-                      subtitle: Text(filteredTasks[index].description),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Checkbox(
-                            value: filteredTasks[index].isCompleted,
-                            onChanged: (value) {
-                              setState(() {
-                                filteredTasks[index].isCompleted = value!;
-                              });
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.edit),
-                            onPressed: () {
-                              _showAddTaskDialog(task: filteredTasks[index]);
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.delete),
-                            onPressed: () {
-                              _removeTask(index);
-                            },
-                          ),
-                        ],
+                    child: InkWell(
+                      onTap: () {
+                        // Mostrar dialogo de edición
+                        _showAddTaskDialog(task: filteredTasks[index]);
+                      },
+                      child: ListTile(
+                        title: Text(filteredTasks[index].title),
+                        subtitle: Text(filteredTasks[index].description),
+                        trailing: Checkbox(
+                          value: filteredTasks[index].isCompleted,
+                          onChanged: (value) {
+                            setState(() {
+                              filteredTasks[index].isCompleted = value!;
+                            });
+                          },
+                        ),
                       ),
                     ),
                   );
